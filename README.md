@@ -59,9 +59,27 @@ src/
 | `META_APP_SECRET` | No | 用于 token exchange（Phase 1 未使用） |
 | `SHOPIFY_ACCESS_TOKEN` | Yes (to enable Shopify) | Shopify Admin API access token |
 | `SHOPIFY_STORE_URL` | Yes | 店铺域名，如 `mystore.myshopify.com`（不含 `https://`） |
+| `SHOPIFY_CLIENT_ID` | No | 提供后开启 token 自动续期，见下 |
+| `SHOPIFY_CLIENT_SECRET` | No | 同上 |
 
 每个平台的必填项缺任意一个，该平台整体跳过 —— server 仍能正常启动。两个平台互相独立，
 可以只启用其中一个。Shopify token 需要的 scopes：`read_orders`、`read_customers`。
+
+### Shopify token 的 24 小时问题
+
+Dev Dashboard 类型的 Shopify app **不会在后台展示 access token**，只能用
+`client_credentials` 换取，而且**有效期只有 24 小时**。手动续期不可持续，因此配置里
+提供 `SHOPIFY_CLIENT_ID` + `SHOPIFY_CLIENT_SECRET` 后，`ShopifyClient` 会自行续期：
+
+- 每次请求前检查剩余寿命，不足 5 分钟就先换新
+- 收到 401 时换一次并重试（覆盖 token 被吊销的情况，例如 app 被重装）
+- 多个请求并发触发续期时只发一次换取请求
+
+不提供这两个变量则退化为原行为：只用 `SHOPIFY_ACCESS_TOKEN`，过期后报
+`[Unauthorized] ... 401`（错误信息里会说明未配置 client 凭证）。
+
+> ⚠️ 后台那个 6 个月有效期的 **"App automation token"（`atkn_` 前缀）不能用于 Admin API**
+> —— 实测返回 `401 [API] Service is not valid for authentication`。别被它的长有效期误导。
 
 ## 构建与运行
 
@@ -86,6 +104,8 @@ npm run lint       # tsc --noEmit
       "META_AD_ACCOUNT_ID": "<account_id>",
       "SHOPIFY_ACCESS_TOKEN": "<shopify-admin-api-token>",
       "SHOPIFY_STORE_URL": "<your-store>.myshopify.com",
+      "SHOPIFY_CLIENT_ID": "<client-id>",
+      "SHOPIFY_CLIENT_SECRET": "<client-secret>",
       "HTTPS_PROXY": "http://127.0.0.1:1080"
     }
   }

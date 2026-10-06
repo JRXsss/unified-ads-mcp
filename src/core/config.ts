@@ -18,6 +18,8 @@ const PLATFORM_ENV: Record<string, PlatformEnvSpec> = {
   },
   shopify: {
     required: ["SHOPIFY_ACCESS_TOKEN", "SHOPIFY_STORE_URL"],
+    // 提供 client 凭证后，ShopifyClient 会自动续期 24 小时 token
+    optional: ["SHOPIFY_CLIENT_ID", "SHOPIFY_CLIENT_SECRET"],
   },
   // google: {
   //   required: ["GOOGLE_ADS_DEVELOPER_TOKEN", "GOOGLE_ADS_CLIENT_ID", "GOOGLE_ADS_CLIENT_SECRET", "GOOGLE_ADS_REFRESH_TOKEN"],
