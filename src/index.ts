@@ -33,15 +33,30 @@ async function main(): Promise<void> {
     enabled.push("meta");
   }
 
-  // ── Phase 2+ 平台在此按同样模式接入 ─────────────────────────
-  // 新增平台无需改动 core/ 或上面任何 Meta 代码：
+  // ── Shopify ────────────────────────────────────────────────
+  // 与 Meta 完全同构：缺凭证则跳过，core/ 与 Meta 代码零改动
+  const shopifyConfig = configProvider.getConfig("shopify");
+  if (shopifyConfig) {
+    const { ShopifyClient } = await import("./platforms/shopify/client.js");
+    const { buildShopifyConfig } = await import("./platforms/shopify/config.js");
+    const { registerShopifyTools } = await import("./platforms/shopify/tools/index.js");
+    const { registerShopifyResources } = await import("./platforms/shopify/resources.js");
+
+    const shopifyClient = new ShopifyClient(buildShopifyConfig(shopifyConfig));
+    registerShopifyTools(server, shopifyClient);
+    registerShopifyResources(server, shopifyClient);
+    enabled.push("shopify");
+  }
+
+  // ── Phase 3+ 平台在此按同样模式接入 ─────────────────────────
+  // 新增平台无需改动 core/ 或上面任何已有平台代码：
   //
-  // const shopifyConfig = configProvider.getConfig("shopify");
-  // if (shopifyConfig) {
-  //   const { ShopifyClient } = await import("./platforms/shopify/client.js");
-  //   const { registerShopifyTools } = await import("./platforms/shopify/tools/index.js");
-  //   registerShopifyTools(server, new ShopifyClient(shopifyConfig));
-  //   enabled.push("shopify");
+  // const googleConfig = configProvider.getConfig("google");
+  // if (googleConfig) {
+  //   const { GoogleClient } = await import("./platforms/google/client.js");
+  //   const { registerGoogleTools } = await import("./platforms/google/tools/index.js");
+  //   registerGoogleTools(server, new GoogleClient(googleConfig));
+  //   enabled.push("google");
   // }
 
   registerPrompts(server);
