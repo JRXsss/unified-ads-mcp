@@ -14,7 +14,8 @@ const REQUEST_TIMEOUT_MS = 30_000;
  * P4: 每个平台独立 client，不做通用 HTTP 抽象 —— Meta 是 REST，Shopify 是 GraphQL，
  * 强行统一反而增加复杂度。
  *
- * Phase 1 只做只读查询 + 异步报表创建，不移植 postMultipart / upload /
+ * Phase 1 只做只读查询 + 异步报表创建，因此只暴露 get / post，
+ * 不提供 delete()（见方案 §2.3 P5）。同样不移植 postMultipart / upload /
  * exchangeToken / debugToken（见方案 §3.3）。
  */
 export class MetaClient {
@@ -120,7 +121,7 @@ export class MetaClient {
   // ── 请求核心 ──────────────────────────────────────────────
 
   private async request(
-    method: "GET" | "POST" | "DELETE",
+    method: "GET" | "POST",
     path: string,
     params?: Record<string, unknown>
   ): Promise<ApiResponse> {
@@ -136,7 +137,7 @@ export class MetaClient {
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     };
 
-    if (method === "GET" || method === "DELETE") {
+    if (method === "GET") {
       const qs = new URLSearchParams();
       qs.set("access_token", this.config.accessToken);
       if (params) {

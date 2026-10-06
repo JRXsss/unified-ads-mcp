@@ -8,7 +8,7 @@ export interface MetaConfig {
 }
 
 /** 把 core 层的通用 PlatformConfig 转成 Meta 专属配置 */
-export function buildMetaConfig(platformConfig: PlatformConfig): MetaConfig {
+export function loadMetaConfig(platformConfig: PlatformConfig): MetaConfig {
   const c = platformConfig.credentials;
   return {
     accessToken: c.META_ADS_ACCESS_TOKEN ?? "",

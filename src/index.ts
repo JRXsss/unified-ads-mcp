@@ -23,11 +23,11 @@ async function main(): Promise<void> {
   const metaConfig = configProvider.getConfig("meta");
   if (metaConfig) {
     const { MetaClient } = await import("./platforms/meta/client.js");
-    const { buildMetaConfig } = await import("./platforms/meta/config.js");
+    const { loadMetaConfig } = await import("./platforms/meta/config.js");
     const { registerMetaTools } = await import("./platforms/meta/tools/index.js");
     const { registerMetaResources } = await import("./platforms/meta/resources.js");
 
-    const metaClient = new MetaClient(buildMetaConfig(metaConfig));
+    const metaClient = new MetaClient(loadMetaConfig(metaConfig));
     registerMetaTools(server, metaClient);
     registerMetaResources(server, metaClient);
     enabled.push("meta");
