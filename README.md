@@ -62,7 +62,7 @@ npm run lint       # tsc --noEmit
 {
   "unified-ads-mcp": {
     "command": "node",
-    "args": ["D:/Users/Roxy/Projects/unified-ads-mcp/dist/index.js"],
+    "args": ["/absolute/path/to/unified-ads-mcp/dist/index.js"],
     "env": {
       "META_ADS_ACCESS_TOKEN": "<token>",
       "META_AD_ACCOUNT_ID": "<account_id>",
@@ -108,20 +108,33 @@ npm run lint       # tsc --noEmit
 
 ## 网络与代理
 
-MCP server 由 Claude Code 直接 spawn，**不继承终端里的 `HTTPS_PROXY`**，而 Node 20 内置的
-`fetch` 本身也不读代理环境变量。因此 server 启动时会主动检查代理环境变量，如果设置了就
-用 `undici` 的 `ProxyAgent` 装成全局 dispatcher —— 各平台 client 无需感知代理。
+**Node 内置的 `fetch` 不读代理环境变量** —— 这是需要额外处理的原因。Claude Code spawn
+stdio MCP server 时默认会继承父进程环境，`HTTPS_PROXY` 能传进来，但 Node 拿到它也不会用。
+因此 server 启动时会主动检查代理环境变量，如果设置了就用 `undici` 的 `ProxyAgent` 装成
+全局 dispatcher —— 各平台 client 无需感知代理。
 
 按此优先级取第一个非空值：`HTTPS_PROXY` → `ALL_PROXY` → `HTTP_PROXY`（大小写都认）。
 
+有三种方式把代理传进来，任选其一：
+
 ```jsonc
-// ~/.claude.json 里必须显式传，否则拿不到终端里的代理
+// 方式 1：写进 ~/.claude.json 的 env（最直接，但明文放在配置文件里）
 "env": {
   "META_ADS_ACCESS_TOKEN": "...",
   "META_AD_ACCOUNT_ID": "act_...",
   "HTTPS_PROXY": "http://127.0.0.1:1080"
 }
 ```
+
+```powershell
+# 方式 2：设为用户级环境变量（Claude Code 默认继承，配置里无需出现任何密钥）
+[Environment]::SetEnvironmentVariable("HTTPS_PROXY", "http://127.0.0.1:1080", "User")
+```
+
+方式 3：用 TUN / 全局模式的代理，在网络层转发，程序完全无需感知。
+
+> ⚠️ 不要写 `"HTTPS_PROXY": "${HTTPS_PROXY}"`。变量未设置时 Claude Code 会把字面量
+> `${HTTPS_PROXY}` 原样传给子进程并**覆盖**继承到的好值，失败得很隐蔽。
 
 不设代理环境变量则直连（适合部署在能直连 Meta 的海外主机上）。
 
