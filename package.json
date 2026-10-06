@@ -1,0 +1,39 @@
+{
+  "name": "unified-ads-mcp",
+  "version": "0.1.0",
+  "description": "Multi-platform ads data MCP server — Meta Ads reporting, extensible to Shopify, Google Ads, TikTok Ads",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "unified-ads-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "keywords": [
+    "mcp",
+    "ads",
+    "meta",
+    "facebook",
+    "marketing",
+    "reporting"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "undici": "^6.29.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "tsx": "^4.23.9",
+    "typescript": "^5.9.3"
+  }
+}
